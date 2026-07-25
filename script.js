@@ -15,6 +15,11 @@ gameWorker.onmessage = function(event) {
         // Appeler votre fonction de rendu ici avec antsData
         renderGame(grid);
     }
+
+    if (type === 'BG_RENDER') {
+        // Appeler votre fonction de rendu ici avec antsData
+        renderBg(grid);
+    }
 };
 
 // 3. Exemple d'envoi d'une action utilisateur au Worker
@@ -104,35 +109,23 @@ offscreenCanvas.width = mainCanvas.width;
 offscreenCanvas.height = mainCanvas.height;
 const offscreenCtx = offscreenCanvas.getContext('2d');
 
-// 3. Dessiner le décor de fond UNE SEULE FOIS (ou uniquement quand il change)
-function drawStaticMap() {
-    offscreenCtx.fillStyle = '#e5c19d'; // Couleur de la terre
-    offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-    
-    // Dessiner des tunnels ou des obstacles statiques
-    offscreenCtx.fillStyle = '#8b5a2b';
-    offscreenCtx.fillRect(50, 50, 300, 40); // Exemple de tunnel
-}
-/*
-// 4. Boucle de rendu principale (60 FPS)
-function renderGame(antsData) {
+function renderBg(grid) {
     // A. Effacer le canvas principal
-    mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+    offscreenCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     
-    // B. "Blitter" (copier) le fond pré-calculé d'un seul coup (Très rapide !)
-    mainCtx.drawImage(offscreenCanvas, 0, 0);
-    
-    // C. Dessiner les entités dynamiques (les fourmis) par-dessus avec positions arrondies
-    antsData.forEach(ant => {
-        const posX = (ant.x + 0.5) | 0; // Arrondi rapide en entier
-        const posY = (ant.y + 0.5) | 0;
-        
-        // Exemple avec un carré (à remplacer par ctx.drawImage de votre Spritesheet)
-        mainCtx.fillStyle = 'black';
-        mainCtx.fillRect(posX, posY, 4, 4);
-    });
+    // C. Dessiner la grille :
+    const cellSize = 4; // Taille de chaque cellule
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+            if (grid[y][x] === 1) {
+                offscreenCtx.fillStyle = 'black';
+            } else {
+                offscreenCtx.fillStyle = 'lightgray';
+            }
+            offscreenCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+    }
 }
-*/
 
 var Grid = undefined;
 function renderGame(grid) {
@@ -141,24 +134,18 @@ function renderGame(grid) {
     mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     
     // B. "Blitter" (copier) le fond pré-calculé d'un seul coup (Très rapide !)
-    // mainCtx.drawImage(offscreenCanvas, 0, 0);
+    mainCtx.drawImage(offscreenCanvas, 0, 0);
     
-    // C. Dessiner la grille : 0=noir, 1=blanc
+    // C. Dessiner la grille :
     const cellSize = 4; // Taille de chaque cellule
     for (let y = 0; y < grid.length; y++) {
         for (let x = 0; x < grid[y].length; x++) {
             if (grid[y][x] === 1) {
                 mainCtx.fillStyle = 'green';
-            } else {
-                mainCtx.fillStyle = 'black';
-            }
-            mainCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            mainCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);}
         }
     }
 }
 
 
-
-// Initialisation
-drawStaticMap();
 
