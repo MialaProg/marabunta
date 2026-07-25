@@ -1,0 +1,108 @@
+Voici le document de spécifications techniques (cahier des charges) synthétisant l'ensemble de nos échanges pour la création de votre jeu de colonie de fourmis en HTML5 natif.
+📝 Cahier des Charges Technique : Projet Ant Colony HTML5
+1. Présentation du Projet
+
+L'objectif est de réaliser un jeu de simulation de colonie de fourmis inspiré du jeu Ant Colony, jouable directement dans un navigateur web en HTML5 natif (sans moteur de jeu externe comme Phaser ou Unity). Le jeu proposera un mode multijoueur en Peer-to-Peer (P2P) permettant à deux joueurs de jouer ensemble dans une architecture Maître/Client.
+2. Architecture Technique & Performances (Moteur de Jeu)
+
+Pour garantir un affichage fluide à 60 FPS malgré la simulation de milliers d'entités (fourmis, ennemis, phéromones), les choix techniques suivants sont retenus :
+2.1 Gestion de la Logique (CPU)
+
+    Web Workers : La boucle de gameplay, l'intelligence artificielle des fourmis et la physique du jeu tourneront dans un thread séparé (Web Worker). Cela évite de bloquer l'affichage de la page principale.
+
+    Partitionnement Spatial (Grille 2D) : La carte sera divisée en une grille de calcul. Les entités ne vérifieront les collisions et la détection de nourriture qu'avec les éléments présents dans leur case ou les cases adjacentes, réduisant la complexité des calculs.
+
+    Gestion de la mémoire (Garbage Collector) :
+
+        Fourmis/Ennemis : Pas de pooling d'objets nécessaire au départ (le taux de naissance/mort étant faible).
+
+        Phéromones/Projectiles : Utilisation d'un Object Pool (recyclage des objets en mémoire) si ces éléments sont générés en masse, afin d'éviter les micro-saccades de nettoyage de mémoire du navigateur.
+
+2.2 Gestion du Rendu (GPU / Canvas)
+
+    Rendu Canvas 2D : Utilisation de l'API Canvas native.
+
+    Spritesheets : Tous les visuels et animations des fourmis seront regroupés dans une image globale. Le rendu se fera exclusivement via ctx.drawImage().
+
+    Offscreen Canvas (Canvas hors-écran) : Les décors statiques (tunnels, carte) et les pistes de phéromones seront dessinés au préalable sur un canvas invisible, puis appliqués en un seul bloc ("blitting") sur le canvas principal à chaque frame.
+
+    Optimisation des Coordonnées : Arrondir systématiquement les positions des entités à l'entier le plus proche (Math.round() ou | 0) avant le rendu pour éviter le coût de l'anti-aliasing dynamique du navigateur.
+
+3. Architecture Réseau (Multijoueur P2P)
+
+Le mode multijoueur reposera sur une connexion directe entre les joueurs pour éliminer les coûts de serveur.
+
+    Technologie : WebRTC via la bibliothèque ultra-légère PeerJS.
+
+    Topologie : Modèle Maître / Client.
+
+        Le joueur Maître (Hôte) fait tourner la simulation globale (via son Web Worker) et dicte l'état du monde.
+
+        Le joueur Client reçoit les données visuelles à afficher et transmet ses intentions de jeu.
+
+    Gestion de la Latence (Gameplay) : L'unique interaction du joueur consiste à placer des actions dans une file d'attente (ex: planifier un ordre de minage, ordonner une zone de récolte). Ce choix de design rend la latence réseau imperceptible sur le plan du gameplay.
+
+    Flux d'initialisation de la partie : 1. Le Maître crée la partie, PeerJS contacte son serveur de signalement (gratuit et cloud) pour obtenir un ID de session (ex: Fourmi-9874).
+    2. Le Maître partage cet ID au Client.
+    3. Le Client entre l'ID pour se connecter.
+    4. La connexion WebRTC directe s'établit ; le serveur de PeerJS se retire complètement.
+
+4. Organisation des Flux de Données
+
+Le flux d'exécution et de communication respectera la structure suivante :
+
+[ Thread Réseau : Page Principale ]
+       │
+       ├─► (Reçoit les commandes réseau de PeerJS) ──┐
+       │                                             ▼
+[ Thread Logique : Web Worker ] ◄────────────────────┘ (Transmet via postMessage)
+       │
+       ├─► Calcule l'IA, la Grille Spatiale, les positions
+       │
+       └─► (Renvoie le tableau des positions) ───────┐
+                                                     ▼
+[ Thread Graphique : Page Principale ] ◄─────────────┘ (Reçoit via onmessage)
+       │
+       └─► Dessine le Offscreen Canvas + Spritesheets (Positions arrondies)
+
+5. Étapes de Développement Recommandées (Feuille de Route)
+
+    Prototype Solo de base : Mettre en place le Canvas, le système de Spritesheet et le déplacement de base d'une centaine de fourmis.
+
+    Intégration du Web Worker & Grille : Déporter la logique dans le Worker et implémenter la grille de partitionnement spatial pour tester les performances à grande échelle.
+
+    Mise en place de l'Offscreen Canvas : Ajouter la gestion du terrain (creusage) et le système de phéromones optimisé.
+
+    Intégration du Réseau (PeerJS) : Connecter deux pages en local, implémenter la file d'attente d'actions du Maître et du Client, puis synchroniser le rendu.
+
+Donne moi les lignes de code de base pour permettre :
+
+- la communication peerJS
+
+- la communication avec le worker
+
+- l'offscreen canvas
+
+Voici les lignes de code de base en JavaScript natif pour mettre en place les trois piliers de votre architecture.
+1. La Communication avec le Web Worker
+
+Dans votre fichier principal (main.js), vous créez le Worker et écoutez les positions envoyées. Dans le fichier du Worker (worker.js), vous gérez la logique et renvoyez les données.
+Dans le script principal (main.js)
+
+1. Il peut y avoir plusieurs clients
+
+Si vous souhaitez ouvrir la partie à plusieurs clients (plus de 2 joueurs au total), le choix de l'architecture Maître/Client reste excellent, mais l'implémentation avec PeerJS doit être ajustée pour gérer une topologie en Étoile (Star Topology).
+
+1. Impact sur les Performances Réseau
+
+Faire du multi-client en P2P pur (sans serveur) présente une limite physique importante : la connexion internet (bande passante en upload) du Maître.
+
+    Si le Maître a 1 client, il envoie les données 1 fois.
+
+    S'il a 4 clients, il doit envoyer le tableau des positions des fourmis 4 fois à chaque frame.
+
+Les optimisations indispensables pour le multi-client :
+
+    Le Network LOD (Clipped Data) : Au lieu d'envoyer la position des 5 000 fourmis de la carte à tout le monde, le Maître doit regarder où se trouve la caméra de chaque client (via sa grille de partitionnement spatial) et envoyer uniquement les données des fourmis qui sont visibles sur l'écran de ce joueur.
+
+    Réduire le taux d'envoi réseau (Tickrate) : Le Web Worker peut calculer la physique à 60 FPS, mais le Maître n'envoie les données réseau aux clients que 20 ou 30 fois par seconde. Les clients utilisent ensuite une simple interpolation (calcul de transition fluide entre l'ancienne et la nouvelle position) pour que les fourmis bougent de manière fluide à l'écran.
