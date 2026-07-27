@@ -55,7 +55,7 @@ function wait(condition, interval = 100, timeout = 10 ** 7) {
 }
 
 var config = {
-    mapSize: [100, 100],
+    mapSize: [1000, 1000],
     cellSize: 10
 }
 
@@ -69,7 +69,12 @@ var workerJSLoaded = false;
 var initMainDone = false;
 // Initialisation of the game.
 async function initMain() {
+    await wait(() => libLoaded('canvas'));
+    Canvas.init();
+    await wait(() => libLoaded('camera'));
+    Camera.init();
     await wait(() => libLoaded('worker'));
+    sendActionToWorker('CONFIG_GAME', config);
     
     initMainDone = true;
 
