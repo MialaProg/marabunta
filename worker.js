@@ -1,58 +1,22 @@
-// Tableau contenant l'état de la simulation
-var Game = {
-    cols: [{ x: 5, y: 5, color: 'red', id: 0, ants: [{ x: 5, y: 5 }] }],
-    gd: [],
-    undgd: [],
-    gdbg: [],
-    undgdbg: []
-};
-
-
-
-function createMap(h, w, trg, tru) {
-    Game.gd = [];
-    Game.undgd = [];
-
-    for (let i = 0; i < h/Game.config.cellSize; i++) {
-        const row = [];
-        for (let j = 0; j < w/Game.config.cellSize; j++) {
-            // row.push(trg);
-            if (Math.random() < .3) {
-                row.push('sb');
-            } else {
-                row.push('tr');
-            }
-        }
-        Game.gdbg.push(row);
-    }
-
-    for (let i = 0; i < h/Game.config.cellSize; i++) {
-        const row = [];
-        for (let j = 0; j < w/Game.config.cellSize; j++) {
-            row.push(tru);
-        }
-        Game.undgdbg.push(row);
-    }
-
-    // Game.gdbg = structuredClone(Game.gd);
-    for (let i = 0; i < h; i++) {
-        const row = [];
-        for (let j = 0; j < w; j++) {
-            row.push(0);
-        }
-        Game.gd.push(row);
-    }
-    Game.undgd = structuredClone(Game.gd);
-
-    self.postMessage({ type: 'MAP_RENDER', grid: Game.gdbg });
+function sendActionToMain(type, data) {
+    self.postMessage({ type, data });
 }
 
+importScripts('./JSW/game.js');
+
+var workerActions = {
+    exemple: (data) => {
+        console.log('Exemple d\'action envoyée au worker');
+    }
+};
 
 console.log('Worker démarré');
 
 // 1. Écouter les actions envoyées par le thread principal
 self.onmessage = function (event) {
     const { type, action } = event.data || {};
+
+    workerActions[type]?.(data);
 
     if (type === 'PLAYER_ACTION') {
         console.log('Action reçue dans le worker :', action);
@@ -82,3 +46,5 @@ self.onmessage = function (event) {
         Game.camera = action.camera;
     }
 };
+
+sendActionToMain('WORKER_READY', { message: 'Worker is ready' });
