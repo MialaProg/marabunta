@@ -2,29 +2,29 @@
 var Camera = {
     x: 0,
     y: 0,
-    speed = 40,
     // Controle de la camera
     clampCamera: () => {
-        Camera.x = Math.max(0, Math.min(Camera.x, globalMapCanvas.width - mainCanvas.width));
-        Camera.y = Math.max(0, Math.min(Camera.y, globalMapCanvas.height - mainCanvas.height));
-        worker.postMessage({ type: 'CAMERA_UPDATE', camera: Camera });
+        Camera.x = Math.max(0, Math.min(Camera.x, config.mapSize[1] - Canvas.main.canvas.width));
+        Camera.y = Math.max(0, Math.min(Camera.y, config.mapSize[0] - Canvas.main.canvas.height));
+        sendActionToWorker('CAMERA_UPDATE', { x: Camera.x, y: Camera.y });
     },
     init: () => {
+        Object.assign(Camera, config.camera);
+
         window.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowUp') {
-                Camera.y -= cameraMoveSpeed;
+                Camera.y -= Camera.speed;
             } else if (event.key === 'ArrowDown') {
-                Camera.y += cameraMoveSpeed;
+                Camera.y += Camera.speed;
             } else if (event.key === 'ArrowLeft') {
-                Camera.x -= cameraMoveSpeed;
+                Camera.x -= Camera.speed;
             } else if (event.key === 'ArrowRight') {
-                Camera.x += cameraMoveSpeed;
+                Camera.x += Camera.speed;
             } else {
                 return;
             }
 
-            clampCamera();
-            if (Grid) renderGame(Grid);
+            Camera.clampCamera();
         });
 
         let isPointerDown = false;
@@ -44,8 +44,7 @@ var Camera = {
             const dy = event.clientY - pointerStart.y;
             Camera.x = cameraStart.x - dx;
             Camera.y = cameraStart.y - dy;
-            clampCamera();
-            if (Grid) renderGame(Grid);
+            Camera.clampCamera();
         });
 
         Canvas.main.canvas.addEventListener('pointerup', (event) => {

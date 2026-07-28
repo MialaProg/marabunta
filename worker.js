@@ -10,13 +10,16 @@ var workerActions = {
 
 
 importScripts('./JSW/game.js');
+importScripts('./JSG/terrain.js');
+importScripts('./JSW/ants.js');
+importScripts('./JSW/env.js');
 
 
 console.log('Worker démarré');
 
 // 1. Écouter les actions envoyées par le thread principal
 self.onmessage = function (event) {
-    const { type, action } = event.data || {};
+    const { type, data } = event.data || {};
 
     workerActions[type]?.(data);
 
@@ -24,7 +27,7 @@ self.onmessage = function (event) {
         console.log('Action reçue dans le worker :', action);
     } else if (type === 'CAMERA_UPDATE') {
         // Mettre à jour la caméra dans le worker si nécessaire
-        Game.camera = action.camera;
+        Game.camera = data;
     }
 };
 
