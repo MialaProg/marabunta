@@ -54,14 +54,17 @@ function wait(condition, interval = 100, timeout = 10 ** 7) {
     });
 }
 
+
 var config = {
     mapSize: [100, 200],
     cellSize: 10,
     camera: {
-        speed:40,
-        wmax: 30,
-        hmax: 20
-    }
+        speed: 10,
+        wmax: 100,
+        hmax: 50,
+        viewUnd: false
+    },
+    moza: 512
 }
 
 var gameWorker = new Worker('./worker.js');
@@ -78,13 +81,16 @@ async function initMain() {
     Canvas.init();
     await wait(() => libLoaded('camera'));
     Camera.init();
-    await wait(() => libLoaded('spritesheet')&&libLoaded('terrain'));
+    await wait(() => libLoaded('ui'));
+    UI.init();
+    await wait(() => libLoaded('spritesheet') &&
+        libLoaded('terrain') );
     await wait(() => libLoaded('worker'));
     sendActionToWorker('CONFIG_GAME', config);
-    
+
     initMainDone = true;
 
-    }
+}
 
 console.log('Main:init...');
 var devFast = false;

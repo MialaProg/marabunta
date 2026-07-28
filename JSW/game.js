@@ -4,37 +4,49 @@ var Game = {
     gd: [],
     undgd: [],
     bg: {
-    gd: [],
-    undgd: []},
-    env: {
-        gd:[]
-    }
+        gd: [],
+        undgd: []
+    },
+    env: { gd: [], undgd: [] },
+    lvl: 'gd'
 };
 
 
+function randint(a, b){
+    return Math.floor(Math.random() * (b - a + 1)) + a;
+}
+
+workerActions.CAMERA_UPDATE = (data) => {
+    Game.camera = data;
+    Game.lvl = Game.camera.lvl; // Option de compatibilité
+    sendActionToMain('BG_RENDER', Game.bg[Game.lvl]);
+    sendActionToMain('ENV_RENDER', Game.env[Game.lvl]);
+}
+
 
 function createMap() {
-    Game.gd = [];
-    Game.undgd = [];
-
     for (let i = 0; i < Game.bg.h; i++) {
         const row = [];
         for (let j = 0; j < Game.bg.w; j++) {
             // row.push(trg);
             if (Math.random() < .3) {
-                row.push('sb');
+                row.push(Terrain.create('sb'));
             } else {
-                row.push('tr');
+                row.push(Terrain.create('tr'));
             }
         }
         Game.bg.gd.push(row);
     }
+    Game.bg.undgd = structuredClone(Game.bg.gd);
+
+    Game.bg.undgd[3][5] = Terrain.create('tr', true);
+
 
     // Game.bg.gd = structuredClone(Game.gd);
     for (let i = 0; i < Game.h; i++) {
         let row = [];
         for (let j = 0; j < Game.w; j++) {
-            row.push(Math.random() < .1 ? Env.create(i,j,'miam','blue') : undefined);
+            row.push(Math.random() < .1 ? Env.create(i, j, 'miam', 'blue') : undefined);
         }
         Game.env.gd.push(row);
         row = [];
@@ -42,10 +54,11 @@ function createMap() {
             row.push(undefined);
         }
         Game.gd.push(row);
+        Game.undgd.push([...row]);
+        Game.env.undgd.push([...row]);
     }
 
-    sendActionToMain('BG_RENDER', Game.bg.gd);
-    sendActionToMain('ENV_RENDER', Game.env.gd);
+    if (Game.camera) { workerActions.CAMERA_UPDATE(Game.camera); }
 }
 
 workerActions.CONFIG_GAME = (config) => {
@@ -67,7 +80,6 @@ workerActions.CONFIG_GAME = (config) => {
         ant.x = (ant.x + 1) % (Game.w); // Déplacer vers la droite
         ant.y = (Game.h + ant.y + 2 * (Math.floor(Math.random() - .5) - .5)) % (Game.h); // Deplacer au hasard en haut ou en bas
         Game.gd[ant.y][ant.x] = Ants.public(ant); // Dessiner la nouvelle position
-        sendActionToMain('ANT_MOVE', Game.gd);
+        sendActionToMain('ANT_MOVE', Game[Game.lvl]);
     }, 1000 / 18);
 };
-

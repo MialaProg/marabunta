@@ -22,13 +22,6 @@ self.onmessage = function (event) {
     const { type, data } = event.data || {};
 
     workerActions[type]?.(data);
-
-    if (type === 'PLAYER_ACTION') {
-        console.log('Action reçue dans le worker :', action);
-    } else if (type === 'CAMERA_UPDATE') {
-        // Mettre à jour la caméra dans le worker si nécessaire
-        Game.camera = data;
-    }
 };
 
 sendActionToMain('WORKER_READY', { message: 'Worker is ready' });

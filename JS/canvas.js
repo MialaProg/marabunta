@@ -14,23 +14,24 @@ var Canvas = {
         const w = canvas.clientHeight;
         canvas.width = h;
         canvas.height = w;
+        Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);
     },
     config: (obj) => {
         obj.canvas = document.createElement('canvas');
         obj.ctx = obj.canvas.getContext('2d');
         obj.canvas.height = config.mapSize[0];
         obj.canvas.width = config.mapSize[1];
-        document.children[0].children[1].appendChild(obj.canvas);
+        const body = document.children[0].children[1];
+        body.appendChild(document.createElement('br'));
+        body.appendChild(obj.canvas);
     },
     blitter: (from, to = Canvas.main) => {
-        const scale = Math.min(to.canvas.width / Camera.wmax, to.canvas.height / Camera.hmax);
-
         to.ctx.drawImage(
             from.canvas,
             Camera.x,
             Camera.y,
-            to.canvas.width / scale,
-            to.canvas.height / scale,
+            to.canvas.width / Canvas.scale,
+            to.canvas.height / Canvas.scale,
             0,
             0,
             to.canvas.width,
@@ -62,19 +63,7 @@ var Canvas = {
                     // }
                     // offscreenCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-                    let cell = Assets[grid[y][x]];
-                    let todo = () => {
-                        Canvas.bg.ctx.drawImage(cell[0], cell[1], cell[2], cell[3], cell[4], x * config.cellSize, y * config.cellSize, config.cellSize, config.cellSize);
-                    }
-                    // Attendre le chargement de cell[0] (image) si besoin
-                    if (!cell[0].complete) {
-                        cell[0].onload = () => {
-                            todo();
-                        };
-                    } else {
-                        todo();
-                    }
-
+                    Assets.draw(Canvas.bg, Terrain.getAsset(grid[y][x]), x * config.cellSize, y * config.cellSize, config.cellSize, config.cellSize, grid[y][x].ran);
                 }
             }
         };
@@ -107,10 +96,12 @@ var Canvas = {
                     const ant = grid[y][x];
                     if (ant) {
                         Canvas.main.ctx.fillStyle = ant.color;
-                        Canvas.main.ctx.fillRect(x * cellSize - Camera.x, y * cellSize - Camera.y, cellSize, cellSize);
+                        Canvas.main.ctx.fillRect((x * cellSize - Camera.x) * Canvas.scale, (y * cellSize - Camera.y) * Canvas.scale, cellSize * Canvas.scale, cellSize * Canvas.scale);
                     }
                 }
             }
+
+            UI.draw();
         }
     }
 };

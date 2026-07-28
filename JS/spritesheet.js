@@ -1,14 +1,56 @@
-const spritesTerrain = new Image();
-
 var sprisheetJSLoaded = false;
 
+const i = {
+    ids: [],
+    create: (id, src) => {
+        i[id] = new Image();
+        i[id].src = src;
+        i.ids.push(id);
+    }
+}
 
-spritesTerrain.src = './ImgTlbx_tr(2471)x(4479)[1].png';
+i.create('terrain', './IMG/ImgTlbx_tr(2471)x(4479)[1].png');
+i.create('ui', './IMG/1785251443411.png');
+i.create('trc', 'IMG/mosaique-aquarelle-3x3-693a1e.png');
+i.create('trf', 'IMG/mosaique-aquarelle-3x3-944d16.png')
 
 var Assets = {
-    sb: [spritesTerrain, 160, 10, 140, 140],
-    tr: [spritesTerrain, 313, 10, 140, 140],
+    sb: {
+        gd: [i.terrain, 160, 10, 140, 140],
+        undgd: [i.terrain, 160, 10, 140, 140],
+        cr: [i.terrain, 160, 10, 140, 140]
+    },
+    tr: {
+        gd: [i.terrain, 313, 10, 140, 140],
+        undgd: [i.trf, 'moza'],
+        cr: [i.trc, 'moza']
+    },
+    btnUnd: [i.ui, 397, 167, 280, 268],
+    btnNoUnd: [i.ui, 693, 164, 280, 268],
 
+
+
+    draw: (canvas, id, x, y, w, h, ran=0) => {
+        let cell = eval('Assets.' + id);
+
+        let todo = () => {
+            if (typeof cell[1] === 'string') {
+                cell = [cell[0],
+                (ran%3) * config[cell[1]], Math.trunc(ran/3) * config[cell[1]],
+                config[cell[1]], config[cell[1]]
+                ]
+            }
+            canvas.ctx.drawImage(...cell, x, y, w, h); // cell[0], cell[1], cell[2], cell[3], cell[4]
+        }
+        // Attendre le chargement de cell[0] (image) si besoin
+        if (!cell[0].complete) {
+            cell[0].onload = () => {
+                todo();
+            };
+        } else {
+            todo();
+        }
+    }
 };
 
 
@@ -41,7 +83,9 @@ function wait(condition, interval = 100, timeout = 10 ** 7) {
 }
 
 async function waitAssets() {
-    await wait(() => spritesTerrain.complete);
+    await wait(() =>
+        i.ids.every(id => i[id].complete)
+    );
     console.log('Spritesheet loaded');
     spritesheetJSLoaded = true;
 }

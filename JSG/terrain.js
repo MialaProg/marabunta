@@ -1,8 +1,16 @@
 var Terrain = {
-    create: (x, y, type) => {
-        return {x: x, y: y, type: type};
+    create: (type, creused = false) => {
+        return {type: type, creused: creused,
+            ran: randint(0,8)
+        };
     },
 
+    getAsset: (terrain) => {
+        return terrain.type + '.' +  
+        (terrain.creused ? 'cr' : Camera.lvl);
+    },
+
+    // Useless, dev uniquement
     getImage: (x, y, grid, level) => {
         const currentType = grid[y][x].type;
         const getCellType = (offsetY, offsetX) => {
