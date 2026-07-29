@@ -2,6 +2,10 @@ function sendActionToMain(type, data) {
     self.postMessage({ type, data });
 }
 
+function randint(a, b) {
+    return Math.floor(Math.random() * (b - a + 1)) + a;
+}
+
 var workerActions = {
     exemple: (data) => {
         console.log('Exemple d\'action envoyée au worker');

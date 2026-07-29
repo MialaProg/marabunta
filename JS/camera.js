@@ -40,39 +40,49 @@ var Camera = {
         let pointerStart = { x: 0, y: 0 };
         let cameraStart = { x: 0, y: 0 };
 
-        Canvas.main.canvas.addEventListener('pointerdown', (event) => {
+        const canvas = Canvas.main.canvas;
+        const preventDefaultGesture = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        canvas.style.touchAction = 'none';
+        canvas.style.userSelect = 'none';
+        canvas.style.webkitUserSelect = 'none';
+        canvas.style.webkitTouchCallout = 'none';
+
+        canvas.addEventListener('pointerdown', (event) => {
+            preventDefaultGesture(event);
             isPointerDown = true;
             pointerStart = { x: event.clientX, y: event.clientY };
             cameraStart = { x: Camera.x, y: Camera.y };
-            Canvas.main.canvas.setPointerCapture(event.pointerId);
-
+            canvas.setPointerCapture(event.pointerId);
         });
 
-        Canvas.main.canvas.addEventListener('pointermove', (event) => {
+        canvas.addEventListener('pointermove', (event) => {
             if (!isPointerDown) return;
+            preventDefaultGesture(event);
             const dx = event.clientX - pointerStart.x;
             const dy = event.clientY - pointerStart.y;
             Camera.x = cameraStart.x - dx / Canvas.scale;
             Camera.y = cameraStart.y - dy / Canvas.scale;
-            // console.log('Pointer move at', { x: event.clientX, y: event.clientY }, 'Camera at', { x: Camera.x, y: Camera.y });
             Camera.clampCamera();
         });
 
-        Canvas.main.canvas.addEventListener('pointerup', (event) => {
+        canvas.addEventListener('pointerup', (event) => {
+            preventDefaultGesture(event);
             isPointerDown = false;
-            Canvas.main.canvas.releasePointerCapture(event.pointerId);
-            // X et Y du point sur le canvas
-            const cv = Canvas.main.canvas;
-            const rect = cv.getBoundingClientRect();
-            const x = (event.clientX - rect.left) * (cv.width / rect.width);
-            const y = (event.clientY - rect.top) * (cv.height / rect.height);
+            canvas.releasePointerCapture(event.pointerId);
+            const rect = canvas.getBoundingClientRect();
+            const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (event.clientY - rect.top) * (canvas.height / rect.height);
             UI.click(x, y);
         });
 
-        Canvas.main.canvas.addEventListener('pointercancel', (event) => {
+        canvas.addEventListener('pointercancel', (event) => {
+            preventDefaultGesture(event);
             isPointerDown = false;
-            Canvas.main.canvas.releasePointerCapture(event.pointerId);
-            console.log('Pointer cancel at', { x: event.clientX, y: event.clientY }, 'Camera at', { x: Camera.x, y: Camera.y });
+            canvas.releasePointerCapture(event.pointerId);
         });
 
 

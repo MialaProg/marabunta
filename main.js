@@ -56,6 +56,7 @@ function wait(condition, interval = 100, timeout = 10 ** 7) {
 
 
 var config = {
+    fps: 18,
     mapSize: [100, 200],
     cellSize: 10,
     camera: {
@@ -64,8 +65,11 @@ var config = {
         hmax: 50,
         viewUnd: false
     },
-    moza: 512
+    moza: 512,
+    motte1: [25.6, 12.9]
 }
+config.ahloc = [parseInt(2.5 * config.cellSize),parseInt(4.5 * config.cellSize)];
+config.rloc = [parseInt(4 * config.cellSize),parseInt(1 * config.cellSize)];
 
 var gameWorker = new Worker('./worker.js');
 var workerActions = {
@@ -111,6 +115,7 @@ gameWorker.onmessage = function (event) {
 };
 
 function sendActionToWorker(type, data) {
+    console.log('Send action to SW ', type, data);
     gameWorker.postMessage({ type, data });
 }
 

@@ -1,8 +1,12 @@
 var Terrain = {
     create: (type, creused = false) => {
-        return {type: type, creused: creused,
-            ran: randint(0,8)
+        return {type, creused,
+            ran: randint(0,8), isTr: true
         };
+    },
+
+    isTerrain: (terrain) => {
+        return terrain && terrain.isTr;
     },
 
     getAsset: (terrain) => {

@@ -7,20 +7,19 @@ var Game = {
         gd: [],
         undgd: []
     },
-    env: { gd: [], undgd: [] },
-    lvl: 'gd'
+    env: { gd: [], undgd: [] }
 };
 
 
-function randint(a, b){
-    return Math.floor(Math.random() * (b - a + 1)) + a;
-}
 
-workerActions.CAMERA_UPDATE = (data) => {
+workerActions.CAMERA_UPDATE = (data, forced) => {
+    const oldLvl = Game.camera?.lvl || 'updt';
     Game.camera = data;
-    Game.lvl = Game.camera.lvl; // Option de compatibilité
-    sendActionToMain('BG_RENDER', Game.bg[Game.lvl]);
-    sendActionToMain('ENV_RENDER', Game.env[Game.lvl]);
+    if (forced || Game.camera.lvl != oldLvl) {
+        Game.lvl = Game.camera.lvl; // Option de compatibilité
+        sendActionToMain('BG_RENDER', Game.bg[Game.lvl]);
+        sendActionToMain('ENV_RENDER', Game.env[Game.lvl]);
+    }
 }
 
 
@@ -39,14 +38,21 @@ function createMap() {
     }
     Game.bg.undgd = structuredClone(Game.bg.gd);
 
-    Game.bg.undgd[3][5] = Terrain.create('tr', true);
-
+    [
+        [3, 5], [4, 5], [5, 5], [6, 5], [5, 4],
+        [4, 2], [5, 2], [6, 2],
+        [4, 3], [5, 3], [6, 3],
+        [4, 1], [5, 1], [6, 1]
+    ].forEach((coords) => {
+        Game.bg.gd[coords[0]][coords[1]] = Terrain.create('tr');
+        Game.bg.undgd[coords[0]][coords[1]] = Terrain.create('tr', true);
+    });
 
     // Game.bg.gd = structuredClone(Game.gd);
     for (let i = 0; i < Game.h; i++) {
         let row = [];
         for (let j = 0; j < Game.w; j++) {
-            row.push(Math.random() < .1 ? Env.create(i, j, 'miam', 'blue') : undefined);
+            row.push(Math.random() < .01 ? Env.create('miam', 'blue') : undefined);
         }
         Game.env.gd.push(row);
         row = [];
@@ -58,7 +64,13 @@ function createMap() {
         Game.env.undgd.push([...row]);
     }
 
-    if (Game.camera) { workerActions.CAMERA_UPDATE(Game.camera); }
+    Game.env.gd[Game.config.ahloc[0]][Game.config.ahloc[1]] =
+        Env.create('anthill', undefined, 'motte1', ...Game.config.motte1
+        );
+
+    if (Game.camera) { 
+        workerActions.CAMERA_UPDATE(Game.camera, true); 
+    }
 }
 
 workerActions.CONFIG_GAME = (config) => {
@@ -69,17 +81,13 @@ workerActions.CONFIG_GAME = (config) => {
     Game.bg.h = Game.h / Game.config.cellSize;
     Game.bg.w = Game.w / Game.config.cellSize;
     createMap();
-    Game.cols[0].ants.push(Ants.create(5, 5, 'prt', Game.cols[0]));
+
+    const col = AntHill.create(...Game.config.ahloc, 'orange');
+    Ants.create(...Game.config.rloc, 'undgd', 'rn', col);
 
     // 2. Boucle de simulation (60 fois par seconde)
     setInterval(() => {
-
-        // Mouvement de la fourmie
-        const ant = Game.cols[0].ants[0];
-        Game.gd[ant.y][ant.x] = undefined; // Effacer l'ancienne position
-        ant.x = (ant.x + 1) % (Game.w); // Déplacer vers la droite
-        ant.y = (Game.h + ant.y + 2 * (Math.floor(Math.random() - .5) - .5)) % (Game.h); // Deplacer au hasard en haut ou en bas
-        Game.gd[ant.y][ant.x] = Ants.public(ant); // Dessiner la nouvelle position
+        AntHill.moves();
         sendActionToMain('ANT_MOVE', Game[Game.lvl]);
-    }, 1000 / 18);
+    }, 1000 / Game.config.fps);
 };

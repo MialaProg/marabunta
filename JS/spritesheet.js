@@ -11,6 +11,7 @@ const i = {
 
 i.create('terrain', './IMG/ImgTlbx_tr(2471)x(4479)[1].png');
 i.create('ui', './IMG/1785251443411.png');
+i.create('env1', './IMG/1785251469089.png');
 i.create('trc', 'IMG/mosaique-aquarelle-3x3-693a1e.png');
 i.create('trf', 'IMG/mosaique-aquarelle-3x3-944d16.png')
 
@@ -27,14 +28,14 @@ var Assets = {
     },
     btnUnd: [i.ui, 397, 167, 280, 268],
     btnNoUnd: [i.ui, 693, 164, 280, 268],
+    motte1: [i.env1, 1638, 783, 256, 129],
 
 
-
-    draw: (canvas, id, x, y, w, h, ran=0) => {
+    draw: (canvas, id, x, y, w, h, ran) => {
         let cell = eval('Assets.' + id);
 
         let todo = () => {
-            if (typeof cell[1] === 'string') {
+            if (typeof cell[1] === 'string' && ran != undefined) {
                 cell = [cell[0],
                 (ran%3) * config[cell[1]], Math.trunc(ran/3) * config[cell[1]],
                 config[cell[1]], config[cell[1]]
@@ -43,6 +44,11 @@ var Assets = {
             canvas.ctx.drawImage(...cell, x, y, w, h); // cell[0], cell[1], cell[2], cell[3], cell[4]
         }
         // Attendre le chargement de cell[0] (image) si besoin
+        if (!cell || !cell[0]) {
+            console.error('No cell[0]:', cell, ' args:', [
+                canvas, id, x, y, w, h, ran
+            ]);
+        }
         if (!cell[0].complete) {
             cell[0].onload = () => {
                 todo();

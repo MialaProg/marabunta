@@ -74,9 +74,14 @@ var Canvas = {
             // C. Dessiner la grille :
             for (let y = 0; y < grid.length; y++) {
                 for (let x = 0; x < grid[y].length; x++) {
-                    if (grid[y][x]) {
-                        Canvas.env.ctx.fillStyle = grid[y][x].color;
-                        Canvas.env.ctx.fillRect(x, y, 1, 1);
+                    const obj = grid[y][x];
+                    if (obj) {
+                        if (obj.srcID) {
+                            Assets.draw(Canvas.env, obj.srcID, x, y, obj.w, obj.h);
+                        } else {
+                            Canvas.env.ctx.fillStyle = grid[y][x].color;
+                            Canvas.env.ctx.fillRect(x, y, 1, 1);
+                        }
                     }
                 }
             }
