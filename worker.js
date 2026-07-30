@@ -13,6 +13,7 @@ var workerActions = {
 };
 
 
+importScripts('./JSW/antools.js');
 importScripts('./JSW/game.js');
 importScripts('./JSG/terrain.js');
 importScripts('./JSW/ants.js');

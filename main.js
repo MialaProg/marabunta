@@ -59,6 +59,7 @@ var config = {
     fps: 18,
     mapSize: [100, 200],
     cellSize: 10,
+    canvasSize: [.5, .5],
     camera: {
         speed: 10,
         wmax: 100,
@@ -68,8 +69,8 @@ var config = {
     moza: 512,
     motte1: [25.6, 12.9]
 }
-config.ahloc = [parseInt(2.5 * config.cellSize),parseInt(4.5 * config.cellSize)];
-config.rloc = [parseInt(4 * config.cellSize),parseInt(1 * config.cellSize)];
+config.ahloc = [parseInt(2.5 * config.cellSize), parseInt(4.5 * config.cellSize)];
+config.rloc = [parseInt(4 * config.cellSize), parseInt(1 * config.cellSize)];
 
 var gameWorker = new Worker('./worker.js');
 var workerActions = {
@@ -88,7 +89,7 @@ async function initMain() {
     await wait(() => libLoaded('ui'));
     UI.init();
     await wait(() => libLoaded('spritesheet') &&
-        libLoaded('terrain') );
+        libLoaded('terrain'));
     await wait(() => libLoaded('worker'));
     sendActionToWorker('CONFIG_GAME', config);
 

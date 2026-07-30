@@ -9,11 +9,13 @@ var Canvas = {
         popup: {}
     },
     resize: (canvas) => {
+        console.log('resize');
         canvas = canvas || Canvas.main.canvas;
-        const h = canvas.clientWidth;
-        const w = canvas.clientHeight;
-        canvas.width = h;
-        canvas.height = w;
+        const w = window.innerWidth * config.canvasSize[1];
+        const h = window.innerHeight * config.canvasSize[0];
+        if (!w || !h) console.error('ERR',document, window);
+        canvas.width = w;
+        canvas.height = h;
         Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);
     },
     config: (obj) => {

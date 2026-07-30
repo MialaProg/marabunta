@@ -6,6 +6,13 @@ var Camera = {
     clampCamera: () => {
         Camera.x = Math.max(0, Math.min(Camera.x, config.mapSize[1] - Canvas.main.canvas.width / Canvas.scale));
         Camera.y = Math.max(0, Math.min(Camera.y, config.mapSize[0] - Canvas.main.canvas.height / Canvas.scale));
+        
+        if (isNaN(Camera.x + Camera.y)){
+            console.error('Camera NaN',Camera.x,Camera.y,Canvas.scale);
+            Camera.x = 0;
+            Camera.y = 0;
+        }
+        
         Camera.updateSW();
     },
     updateSW: () => {

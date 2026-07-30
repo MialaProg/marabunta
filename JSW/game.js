@@ -65,11 +65,16 @@ function createMap() {
     }
 
     Game.env.gd[Game.config.ahloc[0]][Game.config.ahloc[1]] =
-        Env.create('anthill', undefined, 'motte1', ...Game.config.motte1
-        );
+        Env.create('anthill', undefined, 'motte1', ...Game.config.motte1);
 
-    if (Game.camera) { 
-        workerActions.CAMERA_UPDATE(Game.camera, true); 
+    const cf = Game.config.cellSize;
+    Game.env.undgd[4 * cf][1 * cf] = Env.create('cbr', 'orange');
+    Game.env.undgd[6 * cf][1 * cf] = Env.create('stk', 'yellow');
+    Game.env.undgd[4 * cf][3 * cf] = Env.create('cv', 'white');
+    Game.env.undgd[6 * cf][3 * cf] = Env.create('csn', 'red');
+
+    if (Game.camera) {
+        workerActions.CAMERA_UPDATE(Game.camera, true);
     }
 }
 
@@ -84,6 +89,7 @@ workerActions.CONFIG_GAME = (config) => {
 
     const col = AntHill.create(...Game.config.ahloc, 'orange');
     Ants.create(...Game.config.rloc, 'undgd', 'rn', col);
+    Ants.create(...Game.config.rloc, 'undgd', 'srv', col);
 
     // 2. Boucle de simulation (60 fois par seconde)
     setInterval(() => {
