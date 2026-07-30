@@ -7,7 +7,14 @@ var Game = {
         gd: [],
         undgd: []
     },
-    env: { gd: [], undgd: [] }
+    env: { gd: [], undgd: [] },
+    
+    
+    
+    
+    
+    uid: 0,
+    getUID:()=>{Game.uid +=1;return Game.uid}
 };
 
 

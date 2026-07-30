@@ -1,13 +1,14 @@
 
 var Ants = {
-    srvtasks =['nourrirReine'],
+    srvtasks: ['nourrirReine'],
 
     create: (y, x, lvl, type, col) => {
         const ant = {
             y: y, x, lvl, type: type,
             col: col, tick: randint(0, 15),
             actionID: undefined, moved: false,
-            kl: {}, searchType: undefined, dir: undefined
+            kl: {}, searchType: undefined, dir: undefined,
+            vision: 3 * Game.config.cellSize
         };
         col.ants.push(ant);
         return ant;
@@ -22,8 +23,8 @@ var Ants = {
 
         ant.tick = (ant.tick + 1) % 16;
 
-        const bgx = Math.tronc(ant.x / Game.config.cellSize);
-        const bgy = Math.tronc(ant.y / Game.config.cellSize);
+        const bgx = Math.trunc(ant.x / Game.config.cellSize);
+        const bgy = Math.trunc(ant.y / Game.config.cellSize);
 
         const klcell = ant.col.kl[bgy][bgx];
 
@@ -32,7 +33,7 @@ var Ants = {
             ant.actionID = ant.actionID || 0;
             const act = Ants.srvtasks[ant.actionID];
             if (act == 'nourrirReine') {
-                searchType: 'stk'
+                ant.searchType= 'stk'
             }
         }
 
@@ -45,15 +46,26 @@ var Ants = {
                     klcell.type = ant.kl.type;
                 }
             });
-            ant.kl = structuredClone(klcell);
         }
 
         // Decouverte
-        if (searchType) {
-            if (klcell.searchType) {
-
+        if (ant.searchType && !klcell[ant.searchType]) {
+            for (let i = ant.x - ant.vision; i < ant.x + ant.vision; i++) {
+                for (let j = ant.y - ant.vision; j < ant.y + ant.vision; j++) {
+                    const env = Game.env[ant.lvl][j][i]
+                    if (env && env.type == ant.searchType) {
+                        const DirDist = Dir.getDirDist(
+                            j - ant.y, i - ant.x
+                        );
+                        KnowLedge.add(klcell, ant.searchType, DirDist[1],
+                            DirDist[0], env
+                        );
+                    }
+                }
             }
         }
+
+        ant.kl = structuredClone(klcell);
 
 
         Game[ant.lvl][ant.y][ant.x] = Ants.public(ant); // Dessiner la nouvelle position
