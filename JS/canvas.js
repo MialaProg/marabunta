@@ -8,16 +8,14 @@ var Canvas = {
         },
         popup: {}
     },
-    resize: (canvas) => {
+    resize: (envt, canvas) => {
         console.log('resize');
         canvas = canvas || Canvas.main.canvas;
         const w = window.innerWidth * config.canvasSize[1];
         const h = window.innerHeight * config.canvasSize[0];
-        if (!w || !h) console.error('ERR',document, window);
         canvas.width = w;
         canvas.height = h;
-        Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);
-    },
+        Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);    },
     config: (obj) => {
         obj.canvas = document.createElement('canvas');
         obj.ctx = obj.canvas.getContext('2d');
