@@ -59,7 +59,7 @@ function createMap() {
     for (let i = 0; i < Game.h; i++) {
         let row = [];
         for (let j = 0; j < Game.w; j++) {
-            row.push(Math.random() < .01 ? Env.create('miam', 'blue') : undefined);
+            row.push(Math.random() < .005 ? Env.create('miam', 'blue') : undefined);
         }
         Game.env.gd.push(row);
         row = [];
@@ -76,8 +76,10 @@ function createMap() {
 
     const cf = Game.config.cellSize;
     Game.env.undgd[4 * cf][1 * cf] = Env.create('cbr', 'orange');
-    Game.env.undgd[6 * cf][1 * cf] = Env.create('stk', 'yellow');
-    Game.env.undgd[4 * cf][3 * cf] = Env.create('cv', 'white');
+    const stk = Env.create('stk', 'yellow');
+    stk.q = 100;
+    Game.env.undgd[4 * cf][3 * cf] = stk;
+    Game.env.undgd[6 * cf][1 * cf] = Env.create('cv', 'white');
     Game.env.undgd[6 * cf][3 * cf] = Env.create('csn', 'red');
 
     if (Game.camera) {
@@ -95,7 +97,7 @@ workerActions.CONFIG_GAME = (config) => {
     createMap();
 
     const col = AntHill.create(...Game.config.ahloc, 'orange');
-    Ants.create(...Game.config.rloc, 'undgd', 'rn', col);
+    col.rn = Ants.create(...Game.config.rloc, 'undgd', 'rn', col);
     Ants.create(...Game.config.rloc, 'undgd', 'srv', col);
 
     // 2. Boucle de simulation (60 fois par seconde)

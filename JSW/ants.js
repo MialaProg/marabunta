@@ -8,9 +8,15 @@ var Ants = {
             col: col, tick: randint(0, 15),
             actionID: undefined, moved: false,
             kl: {}, searchType: undefined, dir: undefined,
-            vision: 3 * Game.config.cellSize
+            vision: 3 * Game.config.cellSize, bag: 0,
         };
         col.ants.push(ant);
+
+        const perfs = AntData[type];
+        Object.keys(perfs).forEach((key) => {
+            ant[key] = AntData.scale[key][perfs[key]];
+        });
+
         return ant;
     },
 
@@ -33,17 +39,36 @@ var Ants = {
             ant.actionID = ant.actionID || 0;
             const act = Ants.srvtasks[ant.actionID];
             if (act == 'nourrirReine') {
-                ant.searchType= 'stk'
+                if (!ant.bag) {
+                    ant.searchType = 'stk'; // todo: nrr dans le futur
+                    if (klcell.stk?.dist == 0) {
+                        klcell.stk.obj.q -= 1;
+                        ant.bag += 1;
+                    }else{
+                        Dir.move(ant, klcell.stk?.dir);
+                    }
+                } else {
+                    ant.searchType = 'cbr'; // todo: rn
+                    if (klcell.cbr?.dist == 0) {
+                        ant.col.rn.life += 1;
+                        ant.bag -= 1;
+                    }else{
+                        Dir.move(ant, klcell.cbr?.dir);
+                    }
+                }
             }
         }
 
+        // Autodegats
+        ant.life -= ant.autodamage;
+
         // Sauvegarde des chemins
         if (ant.moved) {
-            Object.keys(ant.kl).forEach((type) => {
-                ant.kl.type.dist -= 1;
-                ant.kl.type.dir = ant.dir;
-                if (!klcell.type || ant.kl.type.dist < klcell.type.dist) {
-                    klcell.type = ant.kl.type;
+            Object.keys(ant.kl || {}).forEach((type) => {
+                ant.kl[type].dist -= 1;
+                ant.kl[type].dir = ant.dir;
+                if (!klcell[type] || ant.kl[type].dist < klcell[type].dist) {
+                    klcell[type] = ant.kl[type];
                 }
             });
         }
@@ -57,7 +82,8 @@ var Ants = {
                         const DirDist = Dir.getDirDist(
                             j - ant.y, i - ant.x
                         );
-                        KnowLedge.add(klcell, ant.searchType, DirDist[1],
+                        console.log('add kcell ',ant,DirDist,env);
+                        KnowLedge.add(klcell, ant.searchType, Math.trunc(DirDist[1] / Game.config.cellSize),
                             DirDist[0], env
                         );
                     }
@@ -65,7 +91,7 @@ var Ants = {
             }
         }
 
-        ant.kl = structuredClone(klcell);
+        ant.kl = KnowLedge.copy(klcell);
 
 
         Game[ant.lvl][ant.y][ant.x] = Ants.public(ant); // Dessiner la nouvelle position
@@ -93,6 +119,7 @@ var AntHill = {
 
     moves: () => {
         Game.cols.forEach((col) => AntHill.move(col));
+        console.log('Vie:', Game.cols[1].rn.life);
     },
     move: (col) => {
         col.ants.forEach((ant) => Ants.move(ant));

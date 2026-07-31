@@ -7,5 +7,6 @@
 
 Constructions:
 - stk: Chambre de stockage
+ stk.q -> Quantity
 
 
