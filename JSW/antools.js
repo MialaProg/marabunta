@@ -15,6 +15,11 @@ var AntData = {
         autodamage: 0,
         velocity: 1
     },
+    prt: {
+        life: 1,
+        autodamage: 0,
+        velocity: 1
+    },
 
 
     init: (config) => {

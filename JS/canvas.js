@@ -15,7 +15,10 @@ var Canvas = {
         const h = window.innerHeight * config.canvasSize[0];
         canvas.width = w;
         canvas.height = h;
-        Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);    },
+        Canvas.scale = Math.max(canvas.width / config.camera.wmax, canvas.height / config.camera.hmax);    
+        UI.updateButtons();
+    },
+
     config: (obj) => {
         obj.canvas = document.createElement('canvas');
         obj.ctx = obj.canvas.getContext('2d');

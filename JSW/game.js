@@ -8,13 +8,13 @@ var Game = {
         undgd: []
     },
     env: { gd: [], undgd: [] },
-    
-    
-    
-    
-    
+    pause: false,
+
+
+
+
     uid: 0,
-    getUID:()=>{Game.uid +=1;return Game.uid}
+    getUID: () => { Game.uid += 1; return Game.uid }
 };
 
 
@@ -27,6 +27,10 @@ workerActions.CAMERA_UPDATE = (data, forced) => {
         sendActionToMain('BG_RENDER', Game.bg[Game.lvl]);
         sendActionToMain('ENV_RENDER', Game.env[Game.lvl]);
     }
+}
+
+workerActions.PlayPause = (data) => {
+    Game.pause = data;
 }
 
 
@@ -59,7 +63,9 @@ function createMap() {
     for (let i = 0; i < Game.h; i++) {
         let row = [];
         for (let j = 0; j < Game.w; j++) {
-            row.push(Math.random() < .005 ? Env.create('miam', 'blue') : undefined);
+            const env = Math.random() < .005 ? Env.create('miam', 'blue') : undefined;
+            if (env) env.q = randint(10, 1000);
+            row.push(env);
         }
         Game.env.gd.push(row);
         row = [];
@@ -73,6 +79,9 @@ function createMap() {
 
     Game.env.gd[Game.config.ahloc[0]][Game.config.ahloc[1]] =
         Env.create('anthill', undefined, 'motte1', ...Game.config.motte1);
+
+    Game.env.undgd[Game.config.ahloc[0]][Game.config.ahloc[1]] =
+        Env.create('anthill', 'brown');
 
     const cf = Game.config.cellSize;
     Game.env.undgd[4 * cf][1 * cf] = Env.create('cbr', 'orange');
@@ -99,10 +108,13 @@ workerActions.CONFIG_GAME = (config) => {
     const col = AntHill.create(...Game.config.ahloc, 'orange');
     col.rn = Ants.create(...Game.config.rloc, 'undgd', 'rn', col);
     Ants.create(...Game.config.rloc, 'undgd', 'srv', col);
+    Ants.create(...Game.config.rloc, 'undgd', 'prt', col);
 
     // 2. Boucle de simulation (60 fois par seconde)
     setInterval(() => {
-        AntHill.moves();
-        sendActionToMain('ANT_MOVE', Game[Game.lvl]);
+        if (!Game.pause) {
+            AntHill.moves();
+            sendActionToMain('ANT_MOVE', Game[Game.lvl]);
+        }
     }, 1000 / Game.config.fps);
 };

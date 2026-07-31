@@ -29,6 +29,7 @@ var Assets = {
     btnUnd: [i.ui, 397, 167, 280, 268],
     btnNoUnd: [i.ui, 693, 164, 280, 268],
     motte1: [i.env1, 1638, 783, 256, 129],
+    btnProd: [i.ui, 78, 719, 275, 260],
 
 
     draw: (canvas, id, x, y, w, h, ran) => {

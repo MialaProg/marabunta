@@ -8,7 +8,7 @@ var Ants = {
             col: col, tick: randint(0, 15),
             actionID: undefined, moved: false,
             kl: {}, searchType: undefined, dir: undefined,
-            vision: 3 * Game.config.cellSize, bag: 0,
+            vision: 2 * Game.config.cellSize, bag: 0,
         };
         col.ants.push(ant);
 
@@ -44,7 +44,7 @@ var Ants = {
                     if (klcell.stk?.dist == 0) {
                         klcell.stk.obj.q -= 1;
                         ant.bag += 1;
-                    }else{
+                    } else {
                         Dir.move(ant, klcell.stk?.dir);
                     }
                 } else {
@@ -52,11 +52,50 @@ var Ants = {
                     if (klcell.cbr?.dist == 0) {
                         ant.col.rn.life += 1;
                         ant.bag -= 1;
-                    }else{
+                    } else {
                         Dir.move(ant, klcell.cbr?.dir);
                     }
                 }
             }
+        }
+        if (ant.type == 'prt') {
+            if (ant.bag) {
+                if (ant.lvl = 'gd') {
+                    ant.searchType = 'anthill'; // todo: nrr dans le futur
+                    if (klcell.anthill?.dist == 0) {
+                        ant.lvl = 'undgd';
+                    } else {
+                        Dir.move(ant, klcell.anthill?.dir);
+                    }
+
+                } else {
+                    ant.searchType = 'stk'; // todo: nrr dans le futur
+                    if (klcell.stk?.dist == 0) {
+                        klcell.stk.obj.q += 1;
+                        ant.bag -= 1;
+                    } else {
+                        Dir.move(ant, klcell.stk?.dir);
+                    }
+                }
+            } else {
+                if (ant.lvl = 'gd') {
+                    ant.searchType = 'miam'; // todo: rn
+                    if (klcell.cbr?.dist == 0) {
+                        klcell.miam.obj.q -= 1;
+                        ant.bag += 1;
+                    } else {
+                        Dir.move(ant, klcell.cbr?.dir);
+                    }
+                } else {
+                    ant.searchType = 'anthill'; // todo: nrr dans le futur
+                    if (klcell.anthill?.dist == 0) {
+                        ant.lvl = 'gd';
+                    } else {
+                        Dir.move(ant, klcell.anthill?.dir);
+                    }
+                }
+            }
+
         }
 
         // Autodegats
@@ -82,7 +121,7 @@ var Ants = {
                         const DirDist = Dir.getDirDist(
                             j - ant.y, i - ant.x
                         );
-                        console.log('add kcell ',ant,DirDist,env);
+                        console.log('add kcell ', ant, DirDist, env);
                         KnowLedge.add(klcell, ant.searchType, Math.trunc(DirDist[1] / Game.config.cellSize),
                             DirDist[0], env
                         );
@@ -119,7 +158,7 @@ var AntHill = {
 
     moves: () => {
         Game.cols.forEach((col) => AntHill.move(col));
-        console.log('Vie:', Game.cols[1].rn.life);
+        // console.log('Vie:', Game.cols[1].rn.life);
     },
     move: (col) => {
         col.ants.forEach((ant) => Ants.move(ant));

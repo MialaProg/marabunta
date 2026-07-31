@@ -1,5 +1,6 @@
 var UI = {
     buttons: [],
+    popup: false,
     updateButtons: () => {
         const cv = Canvas.main.canvas;
         UI.buttons = [
@@ -12,14 +13,39 @@ var UI = {
                     Camera.updateSW();
                     UI.updateButtons();
                 }
+            },
+            {
+                draw: ['popup', 0,0,cv.width,cv.height],
+                drawf: (canvas) => {
+                    if (UI.popup) {
+                        canvas.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                        canvas.ctx.fillRect(0, 0, canvas.canvas.width,
+                            canvas.canvas.heigth
+                        );
+                    }
+                },
+                action: () => {
+                    UI.popup = false;
+                }
+            },
+            {
+                draw: ['btnProd', 10, cv.height - 60, 50, 50],
+                action: () => {
+                    UI.popup = true;
+                }
             }
         ]
     },
 
     draw: () => {
-        UI.buttons.forEach((btn) => {
-            Assets.draw(Canvas.main, ...btn.draw);
-        });
+        for (let i = UI.buttons.length; i > 0; i--) {
+            const btn = UI.buttons[i - 1];
+            if (btn.drawf) {
+                btn.drawf();
+            } else             if (btn.draw) {
+                Assets.draw(Canvas.main, ...btn.draw);
+            }
+        }
     },
 
     click: (x, y) => {
@@ -31,8 +57,6 @@ var UI = {
             }
         });
     }
-
-    ,init: () => {UI.updateButtons();}
 };
 
 

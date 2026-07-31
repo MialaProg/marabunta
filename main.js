@@ -82,12 +82,11 @@ var workerJSLoaded = false;
 var initMainDone = false;
 // Initialisation of the game.
 async function initMain() {
+    await wait(() => libLoaded('ui'));
     await wait(() => libLoaded('canvas'));
     Canvas.init();
     await wait(() => libLoaded('camera'));
     Camera.init();
-    await wait(() => libLoaded('ui'));
-    UI.init();
     await wait(() => libLoaded('spritesheet') &&
         libLoaded('terrain'));
     await wait(() => libLoaded('worker'));
