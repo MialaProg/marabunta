@@ -27,8 +27,8 @@ var AntData = {
     }
 }
 
-
-
+var toBgCell = (xy) => { return Math.trunc(xy / Game.config.cellSize) }
+    ;
 var KnowLedge = {
     add: (cell, type, dist, dir, obj) => {
         cell[type] = { dist, dir, obj };
@@ -39,6 +39,7 @@ var KnowLedge = {
         Object.keys(cell).forEach((type) => {
             newcell[type] = { ...cell[type] };
         });
+        return newcell;
     }
 }
 
@@ -47,6 +48,7 @@ var Dir = {
     S: [1, 0],
     E: [0, 1],
     O: [0, -1],
+    dirs: ['N', 'O', 'S', 'E'],
 
     getDirDist: (dy, dx) => {
         if (Math.abs(dy) >= Math.abs(dx)) {
@@ -55,15 +57,46 @@ var Dir = {
         return [dx > 0 ? 'E' : dx < 0 ? 'O' : null, dx];
     },
 
-    move: (ant, dir) => {
-        dir = dir || Dir.getDirDist(
-            Math.random() - .5,
-            Math.random() - .5
-        )[0]
-        const dirlst = Dir[dir];
-        ant.y += dirlst[0];
-        ant.x += dirlst[1];
-        ant.moved = true;
+    getDir: (dy, dx) => {
+        if (Math.abs(dy) >= Math.abs(dx)) {
+            return dy < 0 ? 'N' : dy > 0 ? 'S' : null;
+        }
+        return dx > 0 ? 'E' : dx < 0 ? 'O' : null;
+    },
+
+    inv: (dir) => {
+        return Dir.dirs[(Dir.dirs.indexOf(dir) + 2) % 4];
+    },
+
+    move: (ant, klcell, klid) => {
+        // dir = dir || (() => {
+        //     // Pas de demi-tours.
+        //     if (ant.dir) return Dir.dirs.toSpliced((Dir.dirs.indexOf(ant.dir) + 2) % 4, 1)[randint(0, 2)];
+        //     return Dir.dirs[randint(0, 3)];
+        // })();
+        // ant.dir = dir;
+        // const dirlst = Dir[dir];
+        // if (!Ants.chgYX(ant, dirlst[0], dirlst[1])) console.log('Bord', ant);
+
+        let dir = undefined;
+        if (ant.readdir) {
+            dir = klcell[klid]?.dir;
+            ant.readdir = false;
+        }
+        if (randint(0, 100) < Game.config.freqantchgmtdirfocus) {
+            ant.dir = undefined;
+            console.log('Ranchgmtdir focus');
+        }
+        const ndir = dir || ant.dir || Dir.dirs[randint(0, 3)];
+        ant.dir = ndir;
+        const dirlst = Dir[ndir];
+        if (!Ants.chgYX(ant, dirlst[0], dirlst[1])) {
+            // console.log('Bord', ant);
+            ant.dir = undefined;
+            // Attention si chgmt de terrain: remove data
+            if (dir) klcell[klid] = undefined;
+        };
     }
+
 }
 

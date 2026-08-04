@@ -1,4 +1,4 @@
-var sprisheetJSLoaded = false;
+var spritesheetAssetsLoaded = false;
 
 const i = {
     ids: [],
@@ -38,7 +38,7 @@ var Assets = {
         let todo = () => {
             if (typeof cell[1] === 'string' && ran != undefined) {
                 cell = [cell[0],
-                (ran%3) * config[cell[1]], Math.trunc(ran/3) * config[cell[1]],
+                (ran % 3) * config[cell[1]], Math.trunc(ran / 3) * config[cell[1]],
                 config[cell[1]], config[cell[1]]
                 ]
             }
@@ -94,7 +94,8 @@ async function waitAssets() {
         i.ids.every(id => i[id].complete)
     );
     console.log('Spritesheet loaded');
-    spritesheetJSLoaded = true;
+    spritesheetAssetsLoaded = true;
 }
 
 waitAssets();
+spritesheetJSLoaded = true;

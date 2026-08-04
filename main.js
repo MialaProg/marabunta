@@ -56,7 +56,7 @@ function wait(condition, interval = 100, timeout = 10 ** 7) {
 
 
 var config = {
-    fps: 18,
+    fps: 4,
     mapSize: [100, 200],
     cellSize: 10,
     canvasSize: [.5, .5],
@@ -64,13 +64,15 @@ var config = {
         speed: 10,
         wmax: 100,
         hmax: 50,
-        viewUnd: false
+        viewUnd: true
     },
     moza: 512,
-    motte1: [25.6, 12.9]
+    motte1: [25.6, 12.9],
+    freqantchgmtdir: 50,
+    freqantchgmtdirfocus: 5,
 }
 config.ahloc = [parseInt(2.5 * config.cellSize), parseInt(4.5 * config.cellSize)];
-config.rloc = [parseInt(4 * config.cellSize), parseInt(1 * config.cellSize)];
+config.rloc = [parseInt(4.5 * config.cellSize), parseInt(1.5 * config.cellSize)];
 
 var gameWorker = new Worker('./worker.js');
 var workerActions = {
@@ -82,15 +84,27 @@ var workerJSLoaded = false;
 var initMainDone = false;
 // Initialisation of the game.
 async function initMain() {
+    const pbar = document.getElementById("title");
+    const setPBar = (percent) => {
+        pbar.innerText = percent + '%';
+    }
+    setPBar(10);
     await wait(() => libLoaded('ui'));
     await wait(() => libLoaded('canvas'));
     Canvas.init();
+    setPBar(15);
     await wait(() => libLoaded('camera'));
     Camera.init();
-    await wait(() => libLoaded('spritesheet') &&
-        libLoaded('terrain'));
+    setPBar(20);
+    await wait(() => libLoaded('spritesheet'));
+    await wait(() => libLoaded('terrain'));
+    setPBar(30);
+    await wait(() => spritesheetAssetsLoaded);
+    setPBar(67);
     await wait(() => libLoaded('worker'));
+    setPBar(98);
     sendActionToWorker('CONFIG_GAME', config);
+    setPBar(100);
 
     initMainDone = true;
 
@@ -115,7 +129,7 @@ gameWorker.onmessage = function (event) {
 };
 
 function sendActionToWorker(type, data) {
-    console.log('Send action to SW ', type, data);
+    // console.log('Send action to SW ', type, data);
     gameWorker.postMessage({ type, data });
 }
 

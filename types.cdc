@@ -10,3 +10,8 @@ Constructions:
  stk.q -> Quantity
 
 
+Ants.srvtasks:
+ - nourrirReine
+ - nourrirCouvain
+
+
